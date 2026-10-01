@@ -590,7 +590,7 @@ redis:status docker compose -f docker-compose.redis.yml ps
 - [x] Phase 2 — Tooling & quality gates
 - [x] Phase 3 — Config, errors, app bootstrap
 - [x] Phase 4 — Domain types & parsers
-- [ ] Phase 5 — Outbound HTTP layer
+- [x] Phase 5 — Outbound HTTP layer
 - [ ] Phase 6 — Redis store layer
 - [ ] Phase 7 — Query engine & catalogue service
 - [ ] Phase 8 — Sync
