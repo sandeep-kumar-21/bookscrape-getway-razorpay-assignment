@@ -93,6 +93,13 @@ export class CatalogueService {
   }
 
   /**
+   * Returns current in-memory cached snapshot data without fetching or throwing.
+   */
+  getCachedCatalogue(): CatalogueData | null {
+    return this.cachedSnapshot?.data ?? null;
+  }
+
+  /**
    * Invalidates the in-process snapshot. Called immediately after a new catalogue is published.
    */
   invalidateSnapshot(): void {

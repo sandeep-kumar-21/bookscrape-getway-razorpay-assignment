@@ -1,4 +1,10 @@
-import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnApplicationShutdown,
+  Optional,
+} from '@nestjs/common';
 import { Redis } from 'ioredis';
 import type { KeyValueStore } from './key-value-store.interface.js';
 import { AppConfigService } from '../config/app-config.service.js';
@@ -26,22 +32,27 @@ export class RedisStore implements KeyValueStore, OnApplicationShutdown {
   private readonly prefix: string;
   private isClosed = false;
 
-  constructor(configOrOptions: AppConfigService | RedisStoreOptions) {
+  constructor(
+    @Optional()
+    @Inject(AppConfigService)
+    configOrOptions?: AppConfigService | RedisStoreOptions,
+  ) {
+    const opts = configOrOptions ?? {};
     let url: string;
     let db: number;
     let prefix: string;
     let commandTimeoutMs: number;
 
-    if ('values' in configOrOptions) {
-      url = configOrOptions.redisUrl;
-      db = configOrOptions.redisDb;
-      prefix = configOrOptions.keyPrefix;
+    if ('values' in opts) {
+      url = opts.redisUrl;
+      db = opts.redisDb;
+      prefix = opts.keyPrefix;
       commandTimeoutMs = 2000;
     } else {
-      url = configOrOptions.url ?? 'redis://localhost:6379';
-      db = configOrOptions.db ?? 0;
-      prefix = configOrOptions.keyPrefix ?? 'bsg:v1:';
-      commandTimeoutMs = configOrOptions.commandTimeoutMs ?? 2000;
+      url = opts.url ?? 'redis://localhost:6379';
+      db = opts.db ?? 0;
+      prefix = opts.keyPrefix ?? 'bsg:v1:';
+      commandTimeoutMs = opts.commandTimeoutMs ?? 2000;
     }
 
     this.prefix = prefix;
