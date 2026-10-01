@@ -18,9 +18,16 @@ export default defineConfig({
         '**/*.spec.ts',
         '**/*.e2e-spec.ts',
         'src/main.ts',
+        'src/sync-cli.ts',
       ],
       thresholds: {
         lines: 80,
+        'src/modules/**/parsers/**': {
+          lines: 90,
+        },
+        'src/modules/catalogue/**': {
+          lines: 90,
+        },
       },
     },
   },

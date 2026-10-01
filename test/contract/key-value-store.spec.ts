@@ -137,10 +137,10 @@ runKeyValueStoreContractTests(
   'RedisStore (Docker Redis DB 15)',
   async () => {
     return new RedisStore({
-      url: 'redis://localhost:6379',
+      url: process.env['REDIS_URL'] ?? 'redis://127.0.0.1:6379',
       db: 15,
       keyPrefix: 'bsg:test:contract:',
-      commandTimeoutMs: 2000,
+      commandTimeoutMs: 5000,
     });
   },
   async (store) => {

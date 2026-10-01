@@ -568,18 +568,18 @@ redis:status docker compose -f docker-compose.redis.yml ps
 
 ## 11. Final Acceptance Checklist
 
-- [ ] From a clean clone: `npm run redis:up` → `npm install` → `npm run dev` (or `npm run sync` then `npm run dev`) works per the README
-- [ ] Lint, typecheck, unit and e2e suites pass
-- [ ] Coverage ≥ 80% (parsers, query functions, services ≥ 90%)
-- [ ] After sync: 1,000 books; category counts sum to 1,000; every id matches the id regex
-- [ ] `GET /books?page=1` matches the site's page 1
-- [ ] `npm run api:check` passes fully against a running instance
-- [ ] Consistent error shape for 400/404/429/502/503/504; no HTML or stack traces leak
-- [ ] Redis-down and upstream-down scenarios behave as specified
-- [ ] Swagger complete at `/docs`
-- [ ] `LIMITATIONS.md` and `SITE_ANALYSIS.md` written (including `robots.txt` finding)
-- [ ] No secrets committed; `.env.example` present
-- [ ] Clean conventional-commit history
+- [x] From a clean clone: `npm run redis:up` → `npm install` → `npm run dev` (or `npm run sync` then `npm run dev`) works per the README
+- [x] Lint, typecheck, unit and e2e suites pass
+- [x] Coverage ≥ 80% (parsers, query functions, services ≥ 90%)
+- [x] After sync: 1,000 books; category counts sum to 1,000; every id matches the id regex
+- [x] `GET /books?page=1` matches the site's page 1
+- [x] `npm run api:check` passes fully against a running instance
+- [x] Consistent error shape for 400/404/429/502/503/504; no HTML or stack traces leak
+- [x] Redis-down and upstream-down scenarios behave as specified
+- [x] Swagger complete at `/docs`
+- [x] `LIMITATIONS.md` and `SITE_ANALYSIS.md` written (including `robots.txt` finding)
+- [x] No secrets committed; `.env.example` present
+- [x] Clean conventional-commit history
 
 ---
 
@@ -597,8 +597,8 @@ redis:status docker compose -f docker-compose.redis.yml ps
 - [x] Phase 9 — E2E harness, health, categories
 - [x] Phase 10 — Books list & search
 - [x] Phase 11 — Book detail
-- [ ] Phase 12 — Hardening
-- [ ] Phase 13 — Assignment test script
-- [ ] Phase 14 — Documentation & one-command run
-- [ ] Phase 15 — Final QA & submission
+- [x] Phase 12 — Hardening
+- [x] Phase 13 — Assignment test script
+- [x] Phase 14 — Documentation & one-command run
+- [x] Phase 15 — Final QA & submission
 - [ ] Phase 16 — Stretch (optional)
