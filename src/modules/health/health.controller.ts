@@ -1,5 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   KEY_VALUE_STORE,
   type KeyValueStore,
@@ -9,6 +10,7 @@ import { CatalogueService } from '../catalogue/catalogue.service.js';
 import { HealthResponseDto } from './dto/health-response.dto.js';
 
 @ApiTags('health')
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(

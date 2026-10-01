@@ -19,6 +19,8 @@ export interface TestAppOptions {
   readonly flushRedis?: boolean;
   readonly redisDb?: number;
   readonly customStore?: KeyValueStore;
+  readonly throttleLimit?: number;
+  readonly throttleTtl?: number;
 }
 
 export function createMiniSiteTransport(): FixtureTransport {
@@ -93,6 +95,8 @@ export async function createTestApp(
     HTTP_DELAY_MS: 0,
     HTTP_CONCURRENCY: 2,
     SOURCE_BASE_URL: 'https://books.toscrape.com',
+    THROTTLE_LIMIT: options.throttleLimit ?? 10000,
+    THROTTLE_TTL: options.throttleTtl ?? 60,
   });
 
   let moduleBuilder = Test.createTestingModule({
