@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from './common/config/config.module.js';
@@ -63,6 +63,7 @@ import { AppService } from './app.service.js';
   controllers: [AppController],
   providers: [
     AppService,
+    Reflector,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

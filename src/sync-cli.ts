@@ -1,9 +1,21 @@
+process.env['AUTO_SYNC_ON_BOOT'] = 'false';
+
+import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module.js';
+import { ConfigModule } from './common/config/config.module.js';
+import { StoreModule } from './common/store/store.module.js';
+import { HttpModule } from './common/http/http.module.js';
+import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
+import { SyncModule } from './modules/sync/sync.module.js';
 import { SyncService } from './modules/sync/sync.service.js';
 
+@Module({
+  imports: [ConfigModule, StoreModule, HttpModule, CatalogueModule, SyncModule],
+})
+export class SyncCliModule {}
+
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule, {
+  const app = await NestFactory.createApplicationContext(SyncCliModule, {
     logger: ['log', 'warn', 'error'],
   });
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CatalogueService } from '../catalogue/catalogue.service.js';
@@ -19,7 +19,9 @@ import { BookDetailDto } from './dto/book-detail.dto.js';
 @Controller('books')
 export class BooksController {
   constructor(
+    @Inject(CatalogueService)
     private readonly catalogueService: CatalogueService,
+    @Inject(BookDetailService)
     private readonly bookDetailService: BookDetailService,
   ) {}
 

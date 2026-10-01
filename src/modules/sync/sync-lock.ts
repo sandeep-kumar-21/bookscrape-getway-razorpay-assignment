@@ -19,7 +19,7 @@ export class SyncLock implements OnApplicationShutdown {
 
   constructor(
     @Inject(KEY_VALUE_STORE) private readonly store: KeyValueStore,
-    private readonly config: AppConfigService,
+    @Inject(AppConfigService) private readonly config: AppConfigService,
   ) {}
 
   /**

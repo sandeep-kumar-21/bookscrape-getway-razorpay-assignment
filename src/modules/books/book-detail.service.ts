@@ -22,9 +22,10 @@ export class BookDetailService {
 
   constructor(
     @Inject(KEY_VALUE_STORE) private readonly store: KeyValueStore,
+    @Inject(CatalogueService)
     private readonly catalogueService: CatalogueService,
-    private readonly scraperClient: ScraperClient,
-    private readonly config: AppConfigService,
+    @Inject(ScraperClient) private readonly scraperClient: ScraperClient,
+    @Inject(AppConfigService) private readonly config: AppConfigService,
   ) {}
 
   /**

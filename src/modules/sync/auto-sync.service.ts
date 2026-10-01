@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   Logger,
   type OnApplicationBootstrap,
@@ -13,9 +14,10 @@ export class AutoSyncService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AutoSyncService.name);
 
   constructor(
-    private readonly syncService: SyncService,
+    @Inject(SyncService) private readonly syncService: SyncService,
+    @Inject(CatalogueService)
     private readonly catalogueService: CatalogueService,
-    private readonly config: AppConfigService,
+    @Inject(AppConfigService) private readonly config: AppConfigService,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {

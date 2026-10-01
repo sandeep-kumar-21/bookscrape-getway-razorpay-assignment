@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ScraperClient } from '../../common/http/scraper-client.js';
 import { CatalogueService } from '../catalogue/catalogue.service.js';
 import { SyncLock } from './sync-lock.js';
@@ -20,11 +20,13 @@ export class SyncService {
   private readonly logger = new Logger(SyncService.name);
 
   constructor(
-    private readonly scraperClient: ScraperClient,
+    @Inject(ScraperClient) private readonly scraperClient: ScraperClient,
+    @Inject(CatalogueService)
     private readonly catalogueService: CatalogueService,
-    private readonly lock: SyncLock,
+    @Inject(SyncLock) private readonly lock: SyncLock,
+    @Inject(SyncStatusService)
     private readonly syncStatus: SyncStatusService,
-    private readonly config: AppConfigService,
+    @Inject(AppConfigService) private readonly config: AppConfigService,
   ) {}
 
   /**

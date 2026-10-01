@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CatalogueService } from '../catalogue/catalogue.service.js';
@@ -7,7 +7,10 @@ import { CategoryResponseDto } from './dto/category-response.dto.js';
 @ApiTags('categories')
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly catalogueService: CatalogueService) {}
+  constructor(
+    @Inject(CatalogueService)
+    private readonly catalogueService: CatalogueService,
+  ) {}
 
   @Get()
   @ApiOperation({

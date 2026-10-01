@@ -21,7 +21,7 @@ export class ScraperClient {
 
   constructor(
     @Inject(HTTP_TRANSPORT) private readonly transport: HttpTransport,
-    private readonly config: AppConfigService,
+    @Inject(AppConfigService) private readonly config: AppConfigService,
   ) {
     this.limiter = pLimit(this.config.httpConcurrency);
     this.expectedHostname = new URL(
