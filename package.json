@@ -25,6 +25,7 @@
     "redis:down": "docker compose -f docker-compose.redis.yml stop",
     "redis:status": "docker compose -f docker-compose.redis.yml ps",
     "sync": "tsx src/sync-cli.ts",
+    "api:check": "tsx scripts/api-check.ts",
     "prepare": "husky"
   },
   "dependencies": {
