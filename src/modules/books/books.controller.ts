@@ -1,7 +1,9 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CatalogueService } from '../catalogue/catalogue.service.js';
+import { BookDetailService } from './book-detail.service.js';
+import { BookIdPipe } from './pipes/book-id.pipe.js';
 import {
   filterBooks,
   paginate,
@@ -11,11 +13,15 @@ import {
 import { ListBooksQueryDto } from './dto/list-books-query.dto.js';
 import { SearchBooksQueryDto } from './dto/search-books-query.dto.js';
 import { PaginatedBooksResponseDto } from './dto/paginated-books.dto.js';
+import { BookDetailDto } from './dto/book-detail.dto.js';
 
 @ApiTags('books')
 @Controller('books')
 export class BooksController {
-  constructor(private readonly catalogueService: CatalogueService) {}
+  constructor(
+    private readonly catalogueService: CatalogueService,
+    private readonly bookDetailService: BookDetailService,
+  ) {}
 
   @Get('search')
   @ApiOperation({
@@ -47,6 +53,38 @@ export class BooksController {
     const paginated = paginate(matches, query.page, query.limit);
 
     return paginated;
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get full book details by ID',
+    description:
+      'Retrieves full book details including stock count, tax details, description, and UPC. Serves from Redis cache or lazily scrapes the upstream site.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Book details retrieved successfully',
+    type: BookDetailDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid book ID format (must match slug_numericId pattern)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Book not found in catalogue',
+  })
+  @ApiResponse({
+    status: 503,
+    description: 'Catalogue is not ready',
+  })
+  async getBookDetail(
+    @Param('id', BookIdPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<BookDetailDto> {
+    const result = await this.bookDetailService.get(id);
+    res.setHeader('X-Cache', result.cacheSource);
+    return result.detail;
   }
 
   @Get()
