@@ -1,0 +1,323 @@
+{
+  "info": {
+    "name": "BookScrape Gateway API",
+    "_postman_id": "8b51d02c-56be-4131-8930-b3fba9d16a50",
+    "description": "Production Postman Collection for BookScrape Gateway API (Reverse-engineering books.toscrape.com)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Returns 200 with Redis connection status, latency, crawler status, and catalogue book count."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Categories",
+      "item": [
+        {
+          "name": "List All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Returns all 50 categories sorted alphabetically with genuine book counts that sum to 1,000."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Books Listing & Filters",
+      "item": [
+        {
+          "name": "List Books (Page 1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Returns first page of books matching site order with pagination envelope."
+          }
+        },
+        {
+          "name": "Filter by Category (Poetry)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?category=Poetry",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "category", "value": "Poetry" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Price Range (£20 to £35)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?price_min=20&price_max=35",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "price_min", "value": "20" },
+                { "key": "price_max", "value": "35" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Rating (>= 4 Stars)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?rating_min=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "rating_min", "value": "4" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Stock (In Stock Only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?in_stock=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "in_stock", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sort by Price (Low to High)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?sort=price_asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "sort", "value": "price_asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sort by Rating (High to Low)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?sort=rating_desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "sort", "value": "rating_desc" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Title Search",
+      "item": [
+        {
+          "name": "Search Books ('A Light')",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/search?q=A Light",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "search"],
+              "query": [
+                { "key": "q", "value": "A Light" }
+              ]
+            },
+            "description": "Multi-token case-insensitive title search ranked by relevance."
+          }
+        },
+        {
+          "name": "Search with Category & Rating Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/search?q=the&category=Mystery&rating_min=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "search"],
+              "query": [
+                { "key": "q", "value": "the" },
+                { "key": "category", "value": "Mystery" },
+                { "key": "rating_min", "value": "3" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Book Detail (Lazy Scrape & Caching)",
+      "item": [
+        {
+          "name": "Get Book Detail (Inspect X-Cache: MISS on 1st call)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/a-light-in-the-attic_1000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "a-light-in-the-attic_1000"]
+            },
+            "description": "Fetches full book details. On first request, lazily scrapes upstream and returns X-Cache: MISS. Subsequent requests return X-Cache: HIT."
+          }
+        },
+        {
+          "name": "Get Book Detail (Inspect X-Cache: HIT on 2nd call)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/a-light-in-the-attic_1000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "a-light-in-the-attic_1000"]
+            }
+          }
+        },
+        {
+          "name": "Get Another Book Detail (Tipping the Velvet)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/tipping-the-velvet_999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "tipping-the-velvet_999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Error Handling & Validation",
+      "item": [
+        {
+          "name": "404 - Unknown Book ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/non-existent-book_99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "non-existent-book_99999"]
+            },
+            "description": "Asserts 404 BOOK_NOT_FOUND error shape."
+          }
+        },
+        {
+          "name": "400 - Invalid Book ID Pattern (SSRF prevention)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/malicious..path",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "malicious..path"]
+            },
+            "description": "Asserts 400 INVALID_BOOK_ID error shape."
+          }
+        },
+        {
+          "name": "400 - Invalid Page Number (page=0)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?page=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "page", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "400 - Invalid Price Filter (price_min > price_max)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?price_min=50&price_max=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books"],
+              "query": [
+                { "key": "price_min", "value": "50" },
+                { "key": "price_max", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "400 - Search Query Too Short (q=a)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/search?q=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "books", "search"],
+              "query": [
+                { "key": "q", "value": "a" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
