@@ -43,47 +43,57 @@ Production-grade NestJS RESTful API reverse-engineering [books.toscrape.com](htt
 
 ```mermaid
 flowchart TD
-    subgraph Clients
+    subgraph Clients ["Clients"]
         WebClient["Client Application / Postman"]
         CheckScript["scripts/api-check.ts (Automated QA)"]
     end
 
-    subgraph BookScrape Gateway (NestJS)
-        Middleware["RequestIdMiddleware\n(Correlation ID: X-Request-Id)"]
-        Throttler["ThrottlerGuard\n(100 req/60s, /health exempt)"]
-        PinoLogger["Pino HTTP Logger\n(Structured JSON, Redaction)"]
+    subgraph Gateway ["BookScrape Gateway (NestJS)"]
+        Middleware["RequestIdMiddleware<br/>Correlation ID: X-Request-Id"]
+        Throttler["ThrottlerGuard<br/>100 req/60s, /health exempt"]
+        PinoLogger["Pino HTTP Logger<br/>Structured JSON, Redaction"]
         
-        BooksController["BooksController\n(/api/v1/books, /books/search, /books/:id)"]
-        CatController["CategoriesController\n(/api/v1/categories)"]
-        HealthController["HealthController\n(/api/v1/health)"]
+        BooksController["BooksController<br/>/api/v1/books, /books/search, /books/:id"]
+        CatController["CategoriesController<br/>/api/v1/categories"]
+        HealthController["HealthController<br/>/api/v1/health"]
 
-        QueryEngine["Query Engine\n(Filter, Pagination, Stable Sort, AND Search)"]
-        CatService["CatalogueService\n(In-memory snapshot, Stale fallback)"]
-        DetailService["BookDetailService\n(Single-flight deduplication)"]
-        SyncService["SyncService\n(Site crawler, count validation)"]
-        SyncLock["SyncLock\n(Distributed Redis SET NX EX)"]
+        QueryEngine["Query Engine<br/>Filter, Pagination, Sort, AND Search"]
+        CatService["CatalogueService<br/>In-memory snapshot, Stale fallback"]
+        DetailService["BookDetailService<br/>Single-flight deduplication"]
+        SyncService["SyncService<br/>Site crawler, count validation"]
+        SyncLock["SyncLock<br/>Distributed Redis SET NX EX"]
     end
 
-    subgraph Storage & Upstream
-        Redis[(Docker Redis:6379\nContainer: redis)]
-        LiveSite["books.toscrape.com\n(ScraperClient + p-limit)"]
+    subgraph Storage ["Storage and Upstream"]
+        Redis[("Docker Redis: 6379<br/>Container: redis")]
+        LiveSite["books.toscrape.com<br/>ScraperClient + p-limit"]
     end
 
-    Clients --> Middleware --> Throttler --> PinoLogger
-    PinoLogger --> BooksController & CatController & HealthController
+    WebClient --> Middleware
+    CheckScript --> Middleware
+    Middleware --> Throttler
+    Throttler --> PinoLogger
 
-    BooksController --> QueryEngine & DetailService
+    PinoLogger --> BooksController
+    PinoLogger --> CatController
+    PinoLogger --> HealthController
+
+    BooksController --> QueryEngine
+    BooksController --> DetailService
     CatController --> CatService
-    HealthController --> CatService & SyncService & Redis
+    HealthController --> CatService
+    HealthController --> SyncService
+    HealthController --> Redis
 
     QueryEngine --> CatService
     DetailService --> CatService
     DetailService --> Redis
-    DetailService -. Lazy Scrape (On MISS) .-> LiveSite
+    DetailService -. "Lazy Scrape (On MISS)" .-> LiveSite
 
-    SyncService --> SyncLock --> Redis
+    SyncService --> SyncLock
+    SyncLock --> Redis
     SyncService --> LiveSite
-    SyncService -. Atomic RENAME .-> Redis
+    SyncService -. "Atomic RENAME" .-> Redis
 ```
 
 ### 2.2 Data Flow Diagram
@@ -91,19 +101,19 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Client
-    participant GW as Gateway (NestJS)
-    participant Redis as Redis Store (DB 0)
-    participant Upstream as books.toscrape.com
+    actor Client as "Client"
+    participant GW as "Gateway (NestJS)"
+    participant Redis as "Redis Store (DB 0)"
+    participant Upstream as "books.toscrape.com"
 
     %% Sync Flow
     Note over GW,Upstream: 1. Full Catalogue Crawl (Sync Pipeline)
-    GW->>Redis: Acquire lock (SET lock:sync <token> NX EX 900)
-    GW->>Upstream: Crawl 50 listing pages + 50 categories (p-limit concurrency)
+    GW->>Redis: Acquire lock (SET lock:sync token NX EX 900)
+    GW->>Upstream: Crawl 50 listing pages and 50 categories
     Upstream-->>GW: HTML pages
-    GW->>GW: Parse & validate (exactly 1,000 books, 50 categories)
+    GW->>GW: Parse and validate (1,000 books, 50 categories)
     GW->>Redis: Write to catalogue:tmp
-    GW->>Redis: Atomic RENAME catalogue:tmp -> catalogue
+    GW->>Redis: Atomic RENAME catalogue:tmp to catalogue
     GW->>Redis: Release lock (Lua token check)
 
     %% Request Flow
@@ -111,13 +121,13 @@ sequenceDiagram
     Client->>GW: GET /api/v1/books?category=Poetry&page=1
     GW->>Redis: Check fresh snapshot
     Redis-->>GW: Return catalogue
-    GW->>GW: Filter & paginate in-memory
+    GW->>GW: Filter and paginate in-memory
     GW-->>Client: 200 OK (X-Cache: HIT / MISS)
 
     %% Lazy Detail Flow
     Note over Client,Upstream: 3. Lazy Scrape Detail Page
     Client->>GW: GET /api/v1/books/:id
-    GW->>Redis: Check cached detail key (book:<id>)
+    GW->>Redis: Check cached detail key
     alt Cache HIT
         Redis-->>GW: Return cached JSON
         GW-->>Client: 200 OK (X-Cache: HIT)
@@ -126,7 +136,7 @@ sequenceDiagram
         GW->>Upstream: Outbound GET /catalogue/:id/index.html
         Upstream-->>GW: HTML Detail page
         GW->>GW: Parse table, UPC, stock count, description
-        GW->>Redis: Cache detail with 7-day TTL (SETEX book:<id> 604800)
+        GW->>Redis: Cache detail with 7-day TTL
         GW-->>Client: 200 OK (X-Cache: MISS)
     end
 ```
