@@ -20,7 +20,7 @@ describe('book-detail.parser', () => {
     expect(detail.id).toBe('a-light-in-the-attic_1000');
     expect(detail.title).toBe('A Light in the Attic');
     expect(detail.price).toBe(51.77);
-    expect(detail.currency).toBe('GBP');
+    expect(detail.currency).toBe('INR');
     expect(detail.rating).toBe(3);
     expect(detail.inStock).toBe(true);
     expect(detail.stockCount).toBe(22);

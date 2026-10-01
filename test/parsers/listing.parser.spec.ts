@@ -29,7 +29,7 @@ describe('listing.parser', () => {
     expect(first.position).toBe(1);
     expect(first.title).toBe('A Light in the Attic'); // Untruncated from title attribute
     expect(first.price).toBe(51.77);
-    expect(first.currency).toBe('GBP');
+    expect(first.currency).toBe('INR');
     expect(first.rating).toBe(3);
     expect(first.inStock).toBe(true);
     expect(first.category).toBeNull();

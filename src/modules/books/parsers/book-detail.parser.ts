@@ -161,7 +161,7 @@ export function parseBookDetail(
     position: 0,
     title,
     price,
-    currency: 'GBP',
+    currency: 'INR',
     rating,
     inStock,
     category,

@@ -137,7 +137,7 @@ describe('SyncService', () => {
           position: 1,
           title: 'Old Book',
           price: 10,
-          currency: 'GBP',
+          currency: 'INR',
           rating: 1,
           inStock: true,
           category: null,

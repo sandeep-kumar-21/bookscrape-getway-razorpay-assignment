@@ -115,7 +115,7 @@ export function parseListingPage(
       position: index + 1,
       title,
       price,
-      currency: 'GBP',
+      currency: 'INR',
       rating,
       inStock,
       category: null,

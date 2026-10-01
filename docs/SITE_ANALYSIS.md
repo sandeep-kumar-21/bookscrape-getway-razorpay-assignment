@@ -46,7 +46,7 @@ Comprehensive technical analysis of [https://books.toscrape.com](https://books.t
   - Note: Visual text inside `<a>` is truncated with `...` (e.g. `A Light in the ...`). The complete untruncated title is always located in the `title` attribute.
 - **Price & Currency**:
   - Selector: `p.price_color`
-  - Extraction: Regex `/([0-9]+\.[0-9]{2})/` -> `51.77` as `number`. Currency is `"GBP"`.
+  - Extraction: Regex `/([0-9]+\.[0-9]{2})/` -> `51.77` as `number`. Currency is `"INR"`.
   - Note: Always decode response as UTF-8. Avoid relying on the `£` symbol directly.
 - **Star Rating**:
   - Selector: `p.star-rating`

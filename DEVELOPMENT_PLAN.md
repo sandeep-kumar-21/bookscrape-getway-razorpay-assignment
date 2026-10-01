@@ -260,7 +260,7 @@ Base path `/api/v1`. Swagger UI at `/docs`.
 **BookSummary:** `id, position, title, price, currency, rating, inStock, category, imageUrl, sourceUrl`
 **BookDetail:** summary + `description (nullable), stockCount, upc, productType, priceExclTax, priceInclTax, tax, numberOfReviews, scrapedAt`
 
-**Normalization:** `price` number (regex extract, not symbol-dependent), `currency: "GBP"`; `rating` integer 1–5; `stockCount` integer; all URLs absolute; `id` = slug from the book URL. A selector that finds nothing → `ParseError` with the field name.
+**Normalization:** `price` number (regex extract, not symbol-dependent), `currency: "INR"`; `rating` integer 1–5; `stockCount` integer; all URLs absolute; `id` = slug from the book URL. A selector that finds nothing → `ParseError` with the field name.
 
 ---
 

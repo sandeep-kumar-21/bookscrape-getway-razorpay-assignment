@@ -14,7 +14,7 @@ const mockCatalogueData: CatalogueData = {
       position: 1,
       title: 'A Light in the Attic',
       price: 51.77,
-      currency: 'GBP',
+      currency: 'INR',
       rating: 3,
       inStock: true,
       category: 'Poetry',

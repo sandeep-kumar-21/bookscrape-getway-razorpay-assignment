@@ -189,8 +189,8 @@ async function main() {
     if (typeof d.title !== 'string') errors.push('title is not a string');
     if (typeof d.price !== 'number' || d.price <= 0)
       errors.push('price must be a positive number');
-    if (d.currency !== 'GBP')
-      errors.push(`currency must be GBP, got ${d.currency}`);
+    if (d.currency !== 'INR')
+      errors.push(`currency must be INR, got ${d.currency}`);
     if (typeof d.rating !== 'number' || d.rating < 1 || d.rating > 5)
       errors.push('rating must be between 1 and 5');
     if (typeof d.inStock !== 'boolean') errors.push('inStock must be boolean');

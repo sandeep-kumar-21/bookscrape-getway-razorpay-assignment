@@ -27,7 +27,7 @@ describe('BookDetailService', () => {
         position: 1,
         title: 'Book One',
         price: 10.0,
-        currency: 'GBP',
+        currency: 'INR',
         rating: 3,
         inStock: true,
         category: 'Travel',

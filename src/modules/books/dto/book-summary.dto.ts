@@ -22,12 +22,12 @@ export class BookSummaryDto {
 
   @ApiProperty({
     example: 51.77,
-    description: 'Price in GBP',
+    description: 'Price in INR',
   })
   price!: number;
 
   @ApiProperty({
-    example: 'GBP',
+    example: 'INR',
     description: 'ISO currency code',
   })
   currency!: string;

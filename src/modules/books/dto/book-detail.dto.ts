@@ -30,19 +30,19 @@ export class BookDetailDto extends BookSummaryDto {
 
   @ApiProperty({
     example: 51.77,
-    description: 'Price excluding tax in GBP',
+    description: 'Price excluding tax in INR',
   })
   priceExclTax!: number;
 
   @ApiProperty({
     example: 51.77,
-    description: 'Price including tax in GBP',
+    description: 'Price including tax in INR',
   })
   priceInclTax!: number;
 
   @ApiProperty({
     example: 0.0,
-    description: 'Tax amount in GBP',
+    description: 'Tax amount in INR',
   })
   tax!: number;
 
