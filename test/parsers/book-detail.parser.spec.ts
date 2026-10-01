@@ -132,4 +132,101 @@ describe('book-detail.parser', () => {
       ),
     ).toThrow(ParseError);
   });
+
+  it('handles page without category breadcrumb', () => {
+    const html = `
+      <ul class="breadcrumb"><li><a href="../../index.html">Home</a></li></ul>
+      <div class="product_main">
+        <h1>Some Title</h1>
+        <p class="price_color">£10.00</p>
+        <p class="star-rating One"></p>
+        <p class="instock availability">In stock (5 available)</p>
+      </div>
+      <div id="product_gallery"><img src="img.jpg" /></div>
+      <table class="table table-striped">
+        <tr><th>UPC</th><td>12345</td></tr>
+        <tr><th>Product Type</th><td>Books</td></tr>
+        <tr><th>Price (excl. tax)</th><td>£10.00</td></tr>
+        <tr><th>Price (incl. tax)</th><td>£10.00</td></tr>
+        <tr><th>Tax</th><td>£0.00</td></tr>
+        <tr><th>Number of reviews</th><td>0</td></tr>
+      </table>
+    `;
+    const detail = parseBookDetail(
+      html,
+      'https://books.toscrape.com/catalogue/book_1/index.html',
+    );
+    expect(detail.category).toBeNull();
+  });
+
+  it('throws ParseError on missing table fields or invalid values', () => {
+    const baseHtml = (tableContent: string) => `
+      <div class="product_main">
+        <h1>Some Title</h1>
+        <p class="price_color">£10.00</p>
+        <p class="star-rating One"></p>
+        <p class="instock availability">In stock (5 available)</p>
+      </div>
+      <div id="product_gallery"><img src="img.jpg" /></div>
+      <table class="table table-striped">${tableContent}</table>
+    `;
+
+    // Missing Product Type
+    expect(() =>
+      parseBookDetail(
+        baseHtml('<tr><th>UPC</th><td>123</td></tr>'),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+
+    // Missing Price (excl. tax)
+    expect(() =>
+      parseBookDetail(
+        baseHtml(
+          '<tr><th>UPC</th><td>123</td></tr><tr><th>Product Type</th><td>Books</td></tr>',
+        ),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+
+    // Missing Price (incl. tax)
+    expect(() =>
+      parseBookDetail(
+        baseHtml(
+          '<tr><th>UPC</th><td>123</td></tr><tr><th>Product Type</th><td>Books</td></tr><tr><th>Price (excl. tax)</th><td>£10.00</td></tr>',
+        ),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+
+    // Missing Tax
+    expect(() =>
+      parseBookDetail(
+        baseHtml(
+          '<tr><th>UPC</th><td>123</td></tr><tr><th>Product Type</th><td>Books</td></tr><tr><th>Price (excl. tax)</th><td>£10.00</td></tr><tr><th>Price (incl. tax)</th><td>£10.00</td></tr>',
+        ),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+
+    // Missing Number of reviews
+    expect(() =>
+      parseBookDetail(
+        baseHtml(
+          '<tr><th>UPC</th><td>123</td></tr><tr><th>Product Type</th><td>Books</td></tr><tr><th>Price (excl. tax)</th><td>£10.00</td></tr><tr><th>Price (incl. tax)</th><td>£10.00</td></tr><tr><th>Tax</th><td>£0.00</td></tr>',
+        ),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+
+    // Non-numeric reviews
+    expect(() =>
+      parseBookDetail(
+        baseHtml(
+          '<tr><th>UPC</th><td>123</td></tr><tr><th>Product Type</th><td>Books</td></tr><tr><th>Price (excl. tax)</th><td>£10.00</td></tr><tr><th>Price (incl. tax)</th><td>£10.00</td></tr><tr><th>Tax</th><td>£0.00</td></tr><tr><th>Number of reviews</th><td>not-a-number</td></tr>',
+        ),
+        'https://books.toscrape.com/catalogue/book_1/index.html',
+      ),
+    ).toThrow(ParseError);
+  });
 });

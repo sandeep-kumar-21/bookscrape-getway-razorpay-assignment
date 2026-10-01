@@ -108,5 +108,42 @@ describe('listing.parser', () => {
     expect(() =>
       parseListingPage(missingTitle, 'https://books.toscrape.com/'),
     ).toThrow(ParseError);
+
+    const missingLink = `
+      <section>
+        <article class="product_pod">
+          <div class="image_container"><img src="thumb.jpg" /></div>
+          <h3>Title</h3>
+        </article>
+      </section>
+    `;
+    expect(() =>
+      parseListingPage(missingLink, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
+
+    const missingRating = `
+      <section>
+        <article class="product_pod">
+          <div class="image_container"><a href="book_1/index.html"><img src="thumb.jpg" /></a></div>
+          <h3><a href="book_1/index.html">Title</a></h3>
+        </article>
+      </section>
+    `;
+    expect(() =>
+      parseListingPage(missingRating, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
+
+    const missingPrice = `
+      <section>
+        <article class="product_pod">
+          <div class="image_container"><a href="book_1/index.html"><img src="thumb.jpg" /></a></div>
+          <p class="star-rating One"></p>
+          <h3><a href="book_1/index.html">Title</a></h3>
+        </article>
+      </section>
+    `;
+    expect(() =>
+      parseListingPage(missingPrice, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
   });
 });

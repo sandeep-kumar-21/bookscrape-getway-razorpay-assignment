@@ -81,4 +81,52 @@ describe('category-index.parser', () => {
       ParseError,
     );
   });
+
+  it('throws ParseError when side categories has no category links', () => {
+    const html =
+      '<div class="side_categories"><ul class="nav-list"></ul></div>';
+    expect(() =>
+      parseCategoryIndex(html, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
+  });
+
+  it('throws ParseError when category link has no href', () => {
+    const html = `
+      <div class="side_categories">
+        <ul class="nav-list"><li><ul><li><a>No Href</a></li></ul></li></ul>
+      </div>
+    `;
+    expect(() =>
+      parseCategoryIndex(html, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
+  });
+
+  it('throws ParseError when category link has empty name', () => {
+    const html = `
+      <div class="side_categories">
+        <ul class="nav-list"><li><ul><li><a href="category/books/test_1/index.html">   </a></li></ul></li></ul>
+      </div>
+    `;
+    expect(() =>
+      parseCategoryIndex(html, 'https://books.toscrape.com/'),
+    ).toThrow(ParseError);
+  });
+
+  it('filters out books_1 even if nested inside sub-list', () => {
+    const html = `
+      <div class="side_categories">
+        <ul class="nav-list">
+          <li>
+            <ul>
+              <li><a href="catalogue/category/books_1/index.html">Books</a></li>
+              <li><a href="catalogue/category/books/travel_2/index.html">Travel</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    `;
+    const result = parseCategoryIndex(html, 'https://books.toscrape.com/');
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe('travel_2');
+  });
 });
