@@ -1,114 +1,219 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# BookScrape Gateway
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Production-grade NestJS RESTful API reverse-engineering [books.toscrape.com](https://books.toscrape.com) featuring atomic Redis catalogue synchronization, in-process single-flight request deduplication, resilient error handling, multi-token AND search ranking, rate limiting, and automated health diagnostics.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 1. Architecture Overview
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+```mermaid
+flowchart TD
+    subgraph Clients
+        WebClient[Web / Mobile Clients]
+        CheckScript["scripts/api-check.ts"]
+    end
 
-## Project setup
+    subgraph BookScrape Gateway (NestJS)
+        Middleware["RequestIdMiddleware\n(Correlation ID: X-Request-Id)"]
+        Throttler["ThrottlerGuard\n(100 req/60s, /health exempt)"]
+        PinoLogger["Pino HTTP Logger\n(Structured JSON, Redaction)"]
+        
+        BooksController["BooksController\n(/books, /books/search, /books/:id)"]
+        CatController["CategoriesController\n(/categories)"]
+        HealthController["HealthController\n(/health)"]
 
-```bash
-$ npm install
+        QueryEngine["Query Engine\n(Filter, Stable Sort, AND Search)"]
+        CatService["CatalogueService\n(In-memory snapshot, Stale fallback)"]
+        DetailService["BookDetailService\n(Single-flight deduplication)"]
+        SyncService["SyncService\n(Site crawler, count validation)"]
+        SyncLock["SyncLock\n(Distributed Redis SET NX EX)"]
+    end
+
+    subgraph Data Store & Upstream
+        Redis[(Docker Redis:6379\nContainer: redis)]
+        LiveSite["books.toscrape.com\n(ScraperClient + p-limit)"]
+    end
+
+    Clients --> Middleware --> Throttler --> PinoLogger
+    PinoLogger --> BooksController & CatController & HealthController
+
+    BooksController --> QueryEngine & DetailService
+    CatController --> CatService
+    HealthController --> CatService & SyncService & Redis
+
+    QueryEngine --> CatService
+    DetailService --> CatService
+    DetailService --> Redis
+    DetailService -. Lazy Scrape .-> LiveSite
+
+    SyncService --> SyncLock --> Redis
+    SyncService --> LiveSite
+    SyncService -. Atomic RENAME .-> Redis
 ```
 
-## Compile and run the project
+---
+
+## 2. Quickstart (≤ 5 Commands)
 
 ```bash
-# development
-$ npm run start
+# 1. Start dedicated Redis container (named 'redis' on port 6379)
+npm run redis:up
 
-# watch mode
-$ npm run start:dev
+# 2. Install dependencies
+npm install
 
-# production mode
-$ npm run start:prod
+# 3. Perform full catalogue crawl and sync into Redis
+npm run sync
+
+# 4. Start the application in development mode
+npm run start:dev
+
+# 5. In a separate terminal, run the autonomous test script
+npm run api:check
 ```
 
-## Run tests
+The server is available at **`http://localhost:3000/api/v1`**, and interactive Swagger documentation is available at **`http://localhost:3000/docs`**.
+
+---
+
+## 3. Configuration Reference (`.env`)
+
+Copy `.env.example` to `.env`. All environment variables are validated at bootstrap via Zod:
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `PORT` | `number` | `3000` | Port for the HTTP server |
+| `NODE_ENV` | `string` | `development` | Environment (`development`, `production`, `test`) |
+| `REDIS_URL` | `string` | `redis://localhost:6379` | Connection URI for Redis |
+| `REDIS_DB` | `number` | `0` | Database index (isolated `15` is used for tests) |
+| `KEY_PREFIX` | `string` | `bsg:v1:` | Namespace prefix for Redis keys |
+| `SOURCE_BASE_URL` | `string` | `https://books.toscrape.com` | Base URL of the scrape target |
+| `USER_AGENT` | `string` | `bookscrape-gateway/1.0` | User-Agent header for upstream requests |
+| `HTTP_TIMEOUT_MS` | `number` | `10000` | Outbound request timeout (ms) |
+| `HTTP_MAX_RETRIES` | `number` | `3` | Max retry attempts for transient upstream failures |
+| `HTTP_CONCURRENCY` | `number` | `2` | Politeness limit: max concurrent upstream requests |
+| `HTTP_DELAY_MS` | `number` | `300` | Politeness limit: delay between upstream requests |
+| `DETAIL_TTL_SECONDS`| `number` | `604800` | Cache TTL for book details (7 days) |
+| `SNAPSHOT_TTL_SECONDS`| `number` | `60` | In-memory catalogue snapshot TTL |
+| `SYNC_LOCK_TTL_SECONDS`| `number`| `900` | Distributed sync lock timeout (15 minutes) |
+| `AUTO_SYNC_ON_BOOT`| `boolean`| `true` | Trigger background sync crawl if Redis is empty |
+| `THROTTLE_TTL` | `number` | `60` | Rate limiter window in seconds |
+| `THROTTLE_LIMIT` | `number` | `100` | Max requests per IP per throttle window |
+
+---
+
+## 4. API Endpoints & `curl` Examples
+
+### 4.1 Health Check & Diagnostic Status
+```bash
+curl -X GET http://localhost:3000/api/v1/health
+```
+**Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-10-02T03:00:00.000Z",
+  "version": "1.0.0",
+  "catalogue": { "status": "ready", "total": 1000, "builtAt": "2026-10-02T02:50:00.000Z" },
+  "sync": { "state": "ready", "lastSync": "2026-10-02T02:50:00.000Z", "bookCount": 1000 },
+  "redis": { "connected": true, "latencyMs": 2 }
+}
+```
+
+### 4.2 List Books (Filtered, Sorted & Paginated)
+```bash
+curl -X GET "http://localhost:3000/api/v1/books?page=1&limit=20&category=travel&minPrice=10&maxPrice=50&rating=4&sort=price&order=asc"
+```
+- Every data response carries the `X-Cache: HIT | MISS | STALE` header.
+- `sort=default` strictly preserves the source website's natural catalogue ordering (1..1000).
+- Pages beyond the available range return `200 OK` with `data: []` and accurate `meta`.
+
+### 4.3 Search Books by Title
+```bash
+curl -X GET "http://localhost:3000/api/v1/books/search?q=light%20attic&page=1&limit=10"
+```
+- Normalized multi-token AND matching across titles (case-insensitive, diacritics stripped).
+- Ranks results: exact title match > prefix title match > full phrase substring match > token match.
+
+### 4.4 Get Book Details (Lazy Scrape & Single-Flight)
+```bash
+curl -X GET http://localhost:3000/api/v1/books/a-light-in-the-attic_1000
+```
+- First request lazily scrapes the upstream detail page (`X-Cache: MISS`).
+- Subsequent requests serve from Redis (`X-Cache: HIT`).
+- Unknown book IDs immediately return `404 Not Found` with zero upstream requests.
+
+### 4.5 List Categories
+```bash
+curl -X GET http://localhost:3000/api/v1/categories
+```
+- Returns all categories sorted alphabetically with genuine book counts computed from category subpages.
+
+---
+
+## 5. Architectural & Design Decisions
+
+1. **Two-Stage Data Architecture (Sync vs. Lazy Fetch)**:
+   - **Catalogue (Metadata & Listings)**: Crawled atomically during sync and saved as an authoritative catalogue snapshot.
+   - **Detail Pages**: Lazily fetched on first request and cached in Redis with a 7-day TTL (`DETAIL_TTL_SECONDS`).
+2. **In-Process Single-Flight Deduplication**:
+   - Concurrent requests for the same un-cached book ID are deduplicated using an in-memory `Map<string, Promise<BookDetail>>`. If 10 clients concurrently request the same book, exactly 1 upstream scrape occurs.
+3. **Atomic Publication via Redis Temporary Keys**:
+   - The crawler builds the complete dataset, verifies total counts, writes to `catalogue:tmp`, and executes an atomic Redis `RENAME catalogue:tmp catalogue`. An interrupted crawl never corrupts the active catalogue.
+4. **Distributed Sync Lock**:
+   - Synchronous crawls are protected via Redis `SET lock:sync <token> NX EX 900`. Lock release uses an atomic Lua script verifying token ownership to prevent clearing expired or reacquired locks.
+5. **Route Precedence Defense**:
+   - `/books/search` is declared explicitly before `/books/:id` in `BooksController` to prevent NestJS route shadowing.
+6. **Strict Security Validation**:
+   - All `:id` parameters are validated against `^[a-z0-9-]+_\d+$` via `BookIdPipe`, neutralizing path traversal (`../../`), URL scheme injection, and open-proxy abuse.
+
+---
+
+## 6. Failure Behavior & Runbooks
+
+| Scenario | System Behavior |
+|---|---|
+| **Redis Outage** | The service falls back to in-memory cached snapshots with `X-Cache: STALE`. Book detail requests fall back to direct on-demand scraping without caching. The `/health` endpoint reports `status: "degraded"` with `redis.connected: false`. |
+| **Upstream Site Outage (5xx / Timeout)** | The client retries 3 times with exponential backoff and jitter. If upstream remains unreachable, the gateway responds with standard `502 Bad Gateway` (`UPSTREAM_FAILURE`) or `504 Gateway Timeout` (`UPSTREAM_TIMEOUT`). |
+| **Cold Start / Empty Redis** | If `AUTO_SYNC_ON_BOOT=true`, the gateway launches an asynchronous background crawl. Endpoints return `503 Service Unavailable` with `Retry-After: 10` and code `CATALOGUE_NOT_READY` until the catalogue is published. |
+| **Sync Killed Mid-Crawl** | The temporary key `catalogue:tmp` is discarded, the active catalogue remains untouched, and the distributed lock expires automatically after `SYNC_LOCK_TTL_SECONDS`. |
+
+---
+
+## 7. Testing Suite
+
+The codebase enforces a comprehensive offline testing pipeline using recorded DOM fixtures:
 
 ```bash
-# unit tests
-$ npm run test
+# Run unit & contract tests (135 tests)
+npm test
 
-# e2e tests
-$ npm run test:e2e
+# Run end-to-end integration tests (32 tests)
+npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+# Run test coverage report (enforces ≥ 90% on core services/parsers)
+npm run test:cov
+
+# Run autonomous check against a running server
+npm run api:check
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 8. Docker Deployment
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Run Complete Stack (Gateway + Redis)
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Run Standalone Redis Only (For External Projects)
+```bash
+npm run redis:up
+```
 
-## Observability
+---
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+## 9. Limitations
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+See [`docs/LIMITATIONS.md`](file:///e:/Assignment_Projects/bookscrape-getway-razorpay-assignment/docs/LIMITATIONS.md) for technical trade-offs, upstream dependencies, and recommended long-term production remedies.
