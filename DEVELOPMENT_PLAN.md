@@ -587,7 +587,7 @@ redis:status docker compose -f docker-compose.redis.yml ps
 
 - [x] Phase 0 — Owner setup (scaffold created, Vitest & oxlint working, Node & git ready)
 - [x] Phase 1 — Site analysis & fixtures
-- [ ] Phase 2 — Tooling & quality gates
+- [x] Phase 2 — Tooling & quality gates
 - [ ] Phase 3 — Config, errors, app bootstrap
 - [ ] Phase 4 — Domain types & parsers
 - [ ] Phase 5 — Outbound HTTP layer

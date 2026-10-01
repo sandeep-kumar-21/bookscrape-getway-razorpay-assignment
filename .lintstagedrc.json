@@ -1,0 +1,6 @@
+{
+  "*.ts": [
+    "oxlint",
+    "prettier --write"
+  ]
+}

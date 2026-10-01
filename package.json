@@ -15,6 +15,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "oxlint src/ test/",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
@@ -22,7 +23,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "redis:up": "docker compose -f docker-compose.redis.yml up -d",
     "redis:down": "docker compose -f docker-compose.redis.yml stop",
-    "redis:status": "docker compose -f docker-compose.redis.yml ps"
+    "redis:status": "docker compose -f docker-compose.redis.yml ps",
+    "prepare": "husky"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -33,6 +35,8 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
@@ -41,6 +45,8 @@
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "oxlint": "^1.58.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
