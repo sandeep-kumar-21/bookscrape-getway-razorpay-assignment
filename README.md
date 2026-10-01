@@ -302,7 +302,50 @@ curl -X GET http://localhost:3000/api/v1/categories
 
 ---
 
-## 7. Testing with Postman
+## 7. Interactive Swagger UI Testing (`/docs`)
+
+You can test all endpoints interactively directly from your web browser without installing Postman or writing curl commands using the built-in Swagger UI:
+
+🔗 **Swagger Interactive UI**: [http://localhost:3000/docs](http://localhost:3000/docs)  
+📄 **OpenAPI JSON Spec**: [http://localhost:3000/docs-json](http://localhost:3000/docs-json)
+
+### Step-by-Step Swagger Testing Guide:
+
+1. **Start the API Server**:
+   ```bash
+   npm run dev
+   ```
+2. **Open the Browser**:
+   Navigate to **`http://localhost:3000/docs`**.
+3. **Test Endpoints Interactively**:
+   - **`health`**:
+     - Expand `GET /api/v1/health`.
+     - Click **Try it out** → click **Execute**.
+     - Inspect the live response showing `status: "healthy"`, `redis: { connected: true, latencyMs: 2 }`, and catalogue book count (`1000`).
+   - **`categories`**:
+     - Expand `GET /api/v1/categories`.
+     - Click **Try it out** → click **Execute**.
+     - Verify all 50 categories sorted alphabetically with genuine book counts summing to 1,000.
+   - **`books`**:
+     - **List & Filter Books** (`GET /api/v1/books`):
+       - Click **Try it out**.
+       - Fill in query parameters (e.g. `category: Poetry`, `price_min: 10`, `price_max: 35`, `rating_min: 4`, `sort: price_asc`).
+       - Click **Execute** and review the paginated array, metadata envelope, and currency in `INR`.
+     - **Search by Title** (`GET /api/v1/books/search`):
+       - Click **Try it out**, enter `q: light attic`, and click **Execute**.
+       - Verify relevance-ranked results matching "A Light in the Attic".
+     - **Get Book Detail & Verify Caching** (`GET /api/v1/books/{id}`):
+       - Click **Try it out**, enter `id: a-light-in-the-attic_1000` (or `breaking-dawn-twilight-4_136`).
+       - Click **Execute**. Look at the **Response headers** to observe `x-cache: MISS` (scraped on demand).
+       - Click **Execute** a second time. Observe `x-cache: HIT` and latency drop to `< 5ms` (served from Redis).
+4. **Test Error Handling & Validation**:
+   - In `GET /api/v1/books/{id}`, enter an unknown ID `non-existent-book_99999` → click **Execute** → verify `404 NOT_FOUND`.
+   - Enter malicious path traversal `invalid..path` → click **Execute** → verify `400 INVALID_BOOK_ID`.
+   - In `GET /api/v1/books`, enter `page: 0` → click **Execute** → verify `400 BAD_REQUEST`.
+
+---
+
+## 8. Testing with Postman
 
 A pre-configured Postman Collection is included in the root directory:
 [`postman_collection.json`](file:///e:/Assignment_Projects/bookscrape-getway-razorpay-assignment/postman_collection.json).
@@ -323,7 +366,7 @@ A pre-configured Postman Collection is included in the root directory:
 
 ---
 
-## 8. Automated Verification Script (`api:check`)
+## 9. Automated Verification Script (`api:check`)
 
 The project includes an autonomous verification script [`scripts/api-check.ts`](file:///e:/Assignment_Projects/bookscrape-getway-razorpay-assignment/scripts/api-check.ts) that executes 16 rigorous functional assertions against a running API instance:
 
@@ -352,7 +395,7 @@ npm run api:check -- --base-url=http://localhost:3000
 
 ---
 
-## 9. Comprehensive Testing Pipeline
+## 10. Comprehensive Testing Pipeline
 
 The test suite enforces a **100% offline testing guarantee** using DOM snapshots recorded in `test/fixtures/mini-site/`. Unit and integration tests never make outbound network requests to `books.toscrape.com`:
 
@@ -375,7 +418,7 @@ npm run lint
 
 ---
 
-## 10. Resilience, Error Handling & Failure Runbook
+## 11. Resilience, Error Handling & Failure Runbook
 
 | Scenario | System Behavior | HTTP Response |
 |---|---|---|
@@ -399,21 +442,21 @@ Every 4xx and 5xx error response strictly follows a uniform JSON structure:
 
 ---
 
-## 11. Assumptions, Limitations & Long-Term Fix
+## 12. Assumptions, Limitations & Long-Term Fix
 
-### 11.1 Assumptions & Compliance
+### 12.1 Assumptions & Compliance
 1. **Public Information Only**: Only publicly available data from `https://books.toscrape.com` is accessed.
 2. **Access Controls**: No authentication or access controls were bypassed. Upstream `robots.txt` was inspected and contains no disallow directives for scrapers (`User-agent: *`, no disallows).
 3. **No Sensitive Data**: No real customer data, passwords, API keys, or private records exist or are retained.
 4. **Currency**: All prices are normalized as numeric values with `currency: "INR"` to align with Indian payment gateways (Razorpay).
 
-### 11.2 Limitations of HTML Scraping
+### 12.2 Limitations of HTML Scraping
 - **Brittle DOM Dependency**: Scraping relies on CSS classes (`p.price_color`, `div.image_container`, table row labels). A redesign of the upstream layout will break parsers until updated.
 - **No Real-Time Push / Webhooks**: The gateway must poll or periodically crawl to detect price or inventory changes, introducing a staleness window (`DETAIL_TTL_SECONDS`).
 - **Network & Politeness Bottlenecks**: Full catalogue crawling takes 20–40 seconds due to intentional concurrency limits (5 concurrent connections) to avoid overwhelming the upstream host.
 - **Title Search Scope**: Searches match against the synced catalogue titles; full-text description search requires heavy detail scraping.
 
-### 11.3 Recommended Long-Term Fix
+### 12.3 Recommended Long-Term Fix
 For production commercial integration, HTML scraping should be superseded by:
 1. **Official Partner REST / GraphQL API**: Transitioning to an authenticated JSON API with schema versioning.
 2. **Real-Time Webhooks / Change Data Capture (CDC)**: Receiving instant notifications on inventory and price updates rather than batch polling.
@@ -423,7 +466,7 @@ For production commercial integration, HTML scraping should be superseded by:
 
 ---
 
-## 12. Docker Deployment
+## 13. Docker Deployment
 
 ### Run Complete Stack (Gateway + Redis)
 ```bash
@@ -442,12 +485,12 @@ npm run redis:down   # Stops container
 
 ---
 
-## 13. Author & Contact
+## 14. Author & Contact
 - **Author**: Sandeep Kumar
 - **Email**: [sandeepkumarnitrr@gmail.com](mailto:sandeepkumarnitrr@gmail.com)
 - **LinkedIn**: [linkedin.com/in/sandeep-kumar-s21](https://www.linkedin.com/in/sandeep-kumar-s21)
 
 ---
 
-## 14. License
+## 15. License
 MIT License. Created for technical assignment submission.
