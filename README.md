@@ -9,6 +9,12 @@
   <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
 </p>
 
+<p align="center">
+  <b>Author:</b> Sandeep Kumar &nbsp;|&nbsp;
+  <a href="mailto:sandeepkumarnitrr@gmail.com"><img src="https://img.shields.io/badge/Email-sandeepkumarnitrr%40gmail.com-D14836?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a> &nbsp;|&nbsp;
+  <a href="https://www.linkedin.com/in/sandeep-kumar-s21" target="_blank"><img src="https://img.shields.io/badge/LinkedIn-sandeep--kumar--s21-0077B5?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+</p>
+
 Production-grade NestJS RESTful API reverse-engineering [books.toscrape.com](https://books.toscrape.com) into a high-performance, structured e-commerce catalogue tailored for payment gateway integration (such as Razorpay in INR). Built with atomic distributed Redis synchronization, single-flight request deduplication, multi-token search ranking, automated health diagnostics, and strict resilience fallbacks.
 
 ---
@@ -426,5 +432,12 @@ npm run redis:down   # Stops container
 
 ---
 
-## 13. License
+## 13. Author & Contact
+- **Author**: Sandeep Kumar
+- **Email**: [sandeepkumarnitrr@gmail.com](mailto:sandeepkumarnitrr@gmail.com)
+- **LinkedIn**: [linkedin.com/in/sandeep-kumar-s21](https://www.linkedin.com/in/sandeep-kumar-s21)
+
+---
+
+## 14. License
 MIT License. Created for technical assignment submission.
