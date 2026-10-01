@@ -591,12 +591,12 @@ redis:status docker compose -f docker-compose.redis.yml ps
 - [x] Phase 3 — Config, errors, app bootstrap
 - [x] Phase 4 — Domain types & parsers
 - [x] Phase 5 — Outbound HTTP layer
-- [ ] Phase 6 — Redis store layer
-- [ ] Phase 7 — Query engine & catalogue service
-- [ ] Phase 8 — Sync
-- [ ] Phase 9 — E2E harness, health, categories
-- [ ] Phase 10 — Books list & search
-- [ ] Phase 11 — Book detail
+- [x] Phase 6 — Redis store layer
+- [x] Phase 7 — Query engine & catalogue service
+- [x] Phase 8 — Sync
+- [x] Phase 9 — E2E harness, health, categories
+- [x] Phase 10 — Books list & search
+- [x] Phase 11 — Book detail
 - [ ] Phase 12 — Hardening
 - [ ] Phase 13 — Assignment test script
 - [ ] Phase 14 — Documentation & one-command run
